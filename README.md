@@ -281,7 +281,7 @@ This project is open source. Check LICENSE file for details.
 
 ## 📞 Contact & Support
 
-- **👤 Author**: [Amrit114](https://github.com/Amrit114)
+- **👤 Author**: [Amrit Raj singh](https://github.com/Amrit114)
 - **📦 Repository**: [DSA_RAG](https://github.com/Amrit114/DSA_RAG)
 - **🐛 Issues**: [Report bugs on GitHub](https://github.com/Amrit114/DSA_RAG/issues)
 
