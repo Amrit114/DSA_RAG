@@ -214,7 +214,7 @@ This project is open source. Check LICENSE file for details.
 
 ## Contact & Support
 
-- **Author**: Amrit114
+- **Author**: Amrit Raj Singh
 - **Repository**: https://github.com/Amrit114/DSA_RAG
 - **Issues**: Report bugs on GitHub issues
 
