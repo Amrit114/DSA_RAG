@@ -1,431 +1,476 @@
-# DSA RAG
+# 🎓 DSA RAG - Data Structures & Algorithms RAG System
 
-A small Retrieval-Augmented Generation (RAG) service that exposes a Flask frontend and API to query PDF-based Data Structures & Algorithms materials. The project extracts text from PDFs, creates embeddings, stores them in PostgreSQL (with pgvector), and uses a Groq LLM for context-aware answers.
+<div align="center">
 
-## Quick summary
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-121212?style=for-the-badge&logo=chainlink&logoColor=white)
 
-- Web app: `app.py` serves a simple frontend and two endpoints: `POST /ingest` to ingest PDFs and `POST /ask` to query.
-- PDF loading & splitting: `loaders/pdf_loader.py` uses PyMuPDF via LangChain community loader and splits into chunks.
-- Embeddings: `embeddings/embedder.py` creates embeddings via `HuggingFaceEmbeddings` configured in `config.py`.
-- Vector store: `db/vector_store.py` stores and searches embeddings in PostgreSQL (`documents` table).
-- LLM: `llm/groq_llm.py` wraps the Groq Chat model; prompts are composed in `rag/rag_pipeline.py`.
+**An intelligent AI-powered tutoring system for Data Structures & Algorithms**
 
-## Prerequisites
+*Ask questions, get instant answers from your DSA materials*
 
-- Python 3.8+
-- PostgreSQL with the `pgvector` extension
-- A Groq API key (set in environment variable `GROQ_API_KEY`)
+[Features](#-features) • [Quick Start](#-quick-start) • [Usage](#-usage) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
-## Install
+</div>
 
-1. Create and activate a virtual environment:
+---
+
+## 📸 Screenshots
+
+### 🏠 Home Interface
+<img width="1899" height="885" alt="image" src="https://github.com/user-attachments/assets/6508191e-4eb7-4bc6-8968-8a9498413a69" />
+
+
+### 💬 Query & Response
+<img width="1908" height="894" alt="image" src="https://github.com/user-attachments/assets/665b99c8-0b48-404c-a1ad-a99caac8ef89" />
+
+
+
+## 🌟 Overview
+
+DSA RAG transforms your Data Structures & Algorithms PDF materials into an intelligent Q&A system. Upload your textbooks, lecture notes, or study materials, and get accurate, context-aware answers powered by cutting-edge AI.
+
+### ✨ What Makes It Special?
+
+- 🚀 **Lightning Fast**: Powered by Groq API for instant responses
+- 🎯 **Context-Aware**: Understands your questions and retrieves relevant information
+- 📚 **Multi-Document**: Process multiple PDFs at once
+- 🔍 **Semantic Search**: Find answers based on meaning, not just keywords
+- 💾 **Persistent Storage**: PostgreSQL with vector embeddings for efficient retrieval
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         USER INTERFACE                          │
+│                     (Flask Web Application)                     │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    │                         │
+           ┌────────▼────────┐      ┌────────▼─────────┐
+           │  📄 /ingest     │      │   💬 /ask        │
+           │  Upload PDFs    │      │  Ask Questions   │
+           └────────┬────────┘      └────────┬─────────┘
+                    │                        │
+                    │                        │
+           ┌────────▼────────┐      ┌────────▼─────────┐
+           │  PDF Processing │      │  Query Embedding │
+           │  Text Chunking  │      │                  │
+           └────────┬────────┘      └────────┬─────────┘
+                    │                        │
+                    │                        │
+           ┌────────▼────────┐      ┌────────▼─────────┐
+           │  🧮 Embeddings  │      │  🔍 Vector Search│
+           │  (384-dim)      │      │  (Top-K Results) │
+           └────────┬────────┘      └────────┬─────────┘
+                    │                        │
+                    └────────┬───────────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │  🗄️  PostgreSQL  │
+                    │    + pgvector    │
+                    │  Vector Database │
+                    └────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │  🤖 Groq LLM     │
+                    │  Context + Query │
+                    │  → Answer        │
+                    └──────────────────┘
+```
+
+---
+
+## 📦 Tech Stack
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| 🎯 **Framework** | LangChain | LLM orchestration and workflow |
+| ⚡ **LLM** | Groq API | Ultra-fast inference engine |
+| 🧮 **Embeddings** | Sentence Transformers | Text-to-vector conversion (384-dim) |
+| 🗄️ **Database** | PostgreSQL + pgvector | Vector storage and similarity search |
+| 🌐 **Web Server** | Flask | REST API and web interface |
+| 📄 **PDF Processing** | PyMuPDF | Document text extraction |
+| 🔐 **Config** | python-dotenv | Environment management |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- ✅ Python 3.8 or higher
+- ✅ PostgreSQL with pgvector extension
+- ✅ Groq API key ([Get one here](https://console.groq.com))
+
+### Installation
+
+**1️⃣ Clone the repository**
 
 ```bash
+git clone https://github.com/Amrit114/DSA_RAG.git
+cd DSA_RAG
+```
+
+**2️⃣ Create virtual environment**
+
+```bash
+# Create venv
 python -m venv venv
-# Windows
+
+# Activate (Windows)
 venv\Scripts\activate
-# macOS / Linux
+
+# Activate (macOS/Linux)
 source venv/bin/activate
 ```
 
-2. Install dependencies:
+**3️⃣ Install dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Create the database and extension (example using psql):
+**4️⃣ Setup PostgreSQL**
 
 ```sql
+-- Create database
 CREATE DATABASE rag_db;
+
+-- Connect to database
 \c rag_db
+
+-- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
-```
 
-4. Create the `documents` table used by the code:
-
-```sql
+-- Create documents table
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     content TEXT,
     embedding VECTOR(384)
 );
+
+-- Create index for faster searches (optional but recommended)
+CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops);
 ```
 
-Update `DB_CONFIG` in `config.py` if your database credentials differ.
+**5️⃣ Configure environment**
 
-## Configuration
+Create a `.env` file in the project root:
 
-Edit `config.py` or use a `.env` file to set environment variables. Relevant values in `config.py`:
+```env
+# Groq API Configuration
+GROQ_API_KEY=your_groq_api_key_here
 
-- `PDF_DIR` — default: `data/pdf` (where PDF files should be placed)
-- `DB_CONFIG` — connection information for PostgreSQL
-- `EMBEDDING_MODEL` — Hugging Face model name used for embeddings
-- `GROQ_MODEL` and `GROQ_API_KEY` — Groq LLM configuration
+# Database Configuration
+DB_NAME=rag_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
 
-## Usage
+# Optional: Customize paths
+PDF_DIR=data/pdf
+```
 
-1. Place your PDF files into the `data/pdf/` directory.
+**6️⃣ Add your DSA materials**
 
-2. Start the Flask server:
+```bash
+# Place your PDF files in the data directory
+mkdir -p data/pdf
+# Copy your PDFs to data/pdf/
+```
+
+---
+
+## 💻 Usage
+
+### Starting the Server
 
 ```bash
 python app.py
 ```
 
-3. Ingest PDFs (via the server endpoint):
+The server will start at `http://localhost:5000`
+
+### Using the Web Interface
+
+1. 🌐 Open your browser and navigate to `http://localhost:5000`
+2. 📤 Click "Ingest Documents" to process PDFs (first time only)
+3. 💬 Type your question in the input box
+4. ✨ Get instant AI-powered answers!
+
+### Using the API
+
+**Ingest Documents**
 
 ```bash
 curl -X POST http://localhost:5000/ingest
 ```
 
-The `/ingest` endpoint runs `load_and_split_pdfs_from_directory(PDF_DIR)` and then `store_documents(...)` to save embeddings to the database.
-
-4. Ask a question (example):
+**Ask a Question**
 
 ```bash
 curl -X POST http://localhost:5000/ask \
   -H "Content-Type: application/json" \
-  -d '{"question":"What is a binary search tree?"}'
+  -d '{
+    "question": "What is a binary search tree and how does it work?"
+  }'
 ```
 
-The request calls `rag.rag_pipeline.rag_answer(question)`, which performs a similarity search and invokes the Groq LLM with the retrieved context.
+**Response Format**
 
-## Files & Responsibilities
+```json
+{
+  "answer": "A binary search tree is a hierarchical data structure...",
+  "status": "success"
+}
+```
 
-- `app.py` — Flask app with `/` (frontend), `/ingest`, and `/ask` endpoints.
-- `loaders/pdf_loader.py` — Finds PDFs in `data/pdf/`, loads them using PyMuPDF and splits text into chunks.
-- `embeddings/embedder.py` — Returns the `HuggingFaceEmbeddings` model used to embed text.
-- `db/connection.py` — Returns a psycopg2 connection using `DB_CONFIG` from `config.py`.
-- `db/vector_store.py` — `store_documents(chunks)` inserts text+embedding into `documents`; `similarity_search(query, top_k=5)` returns concatenated text results.
-- `llm/groq_llm.py` — Builds a `ChatGroq` client used to invoke the LLM.
-- `rag/rag_pipeline.py` — Composes prompt, retrieves context via `similarity_search`, and calls the LLM.
-- `templates/index.html` & `static/script.js` — Minimal frontend to ask questions and display answers.
-- `main.py` — tiny CLI stub.
+### Using Python Code
 
-## Notes & Recommendations
+```python
+from rag.rag_pipeline import rag_answer
 
-- Security: Keep `GROQ_API_KEY` and DB credentials out of version control; use a `.env` file or secrets manager.
-- Embedding dimensionality: The code assumes a 384-dim model (see `EMBEDDING_MODEL` in `config.py`). If you change the model, update the database `VECTOR(...)` size accordingly.
-- Production: For concurrency and stability, run the Flask app behind a production server (e.g., Gunicorn) and secure the DB and API keys.
-
-## Troubleshooting
-
-- If ingestion reports no PDFs: confirm files are in `data/pdf/` and `PDF_DIR` path in `config.py` is correct.
-- Database connection errors: verify PostgreSQL is running and `DB_CONFIG` matches your credentials.
-- LLM errors: ensure `GROQ_API_KEY` is set and the configured `GROQ_MODEL` is available.
-
-## Contributing
-
-Contributions welcome. Typical flow:
-
-1. Fork and create a feature branch
-2. Add tests/local verification
-3. Open a PR
-
-## License
-
-See repository license (if present).
+# Ask a question
+question = "Explain the time complexity of quicksort"
+answer = rag_answer(question)
+print(answer)
+```
 
 ---
-
-If you'd like, I can also:
-
-- Add a sample `.env.example` file
-- Add a small script to initialize the DB schema
-- Add a short guide to deploy the Flask app behind Gunicorn
-
-# 🎓 DSA RAG - Data Structures & Algorithms RAG System
-
-> An intelligent **Retrieval-Augmented Generation (RAG)** system for Data Structures & Algorithms learning
-
-A powerful AI-driven tutoring system that enables intelligent Q&A over DSA educational materials using cutting-edge LLMs and vector databases.
-
-## 🚀 Overview
-
-DSA RAG is an **AI-powered tutoring system** that processes PDF documents containing DSA concepts and provides accurate, context-aware answers to user queries. 
-
-### Key Components:
-
-| Component | Description |
-|-----------|-------------|
-| 📄 **Document Processing** | Loads and processes PDF documents intelligently |
-| 🧮 **Embeddings** | Converts text into vector embeddings using sentence transformers |
-| 🗄️ **Vector Database** | Stores embeddings in PostgreSQL with pgvector extension |
-| 🤖 **LLM Integration** | Uses Groq's API for ultra-fast inference |
-| 🔄 **RAG Pipeline** | Retrieves relevant context and generates accurate answers |
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐
-│   User Query    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  Similarity Search      │
-│   (Vector Database)     │
-└────────┬────────────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  Context Retrieval      │
-│  (Top-K Results)        │
-└────────┬────────────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  LLM Processing         │
-│  (Groq API)             │
-└────────┬────────────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  Generated Answer       │
-│  (Context-Aware)        │
-└─────────────────────────┘
-```
 
 ## 📁 Project Structure
 
 ```
 DSA_RAG/
-├── 📄 app.py                 # Main application entry point
-├── ⚙️  config.py              # Configuration settings
-├── 🚀 main.py                # CLI interface
-├── 📋 requirements.txt       # Python dependencies
+│
+├── 📄 app.py                    # Flask application (API + Web UI)
+├── ⚙️  config.py                 # Configuration settings
+├── 🚀 main.py                   # CLI interface
+├── 📋 requirements.txt          # Python dependencies
+├── 🔐 .env                      # Environment variables (create this)
+│
 ├── 📂 data/
-│   ├── 📚 pdf/              # PDF documents (DSA books/materials)
-│   └── 📝 text/             # Text files
+│   ├── 📚 pdf/                  # Place your PDF files here
+│   └── 📝 text/                 # Text files (optional)
+│
 ├── 🗄️  db/
-│   ├── 🔗 connection.py      # Database connection utilities
-│   └── 🔍 vector_store.py    # Vector store and similarity search
+│   ├── 🔗 connection.py         # PostgreSQL connection handler
+│   └── 🔍 vector_store.py       # Vector storage and similarity search
+│
 ├── 🧮 embeddings/
-│   └── 📊 embedder.py        # Text embedding functions
+│   └── 📊 embedder.py           # Text embedding generation
+│
 ├── 🤖 llm/
-│   └── 💬 groq_llm.py        # Groq LLM integration
+│   └── 💬 groq_llm.py           # Groq LLM integration
+│
 ├── 📦 loaders/
-│   └── 📥 pdf_loader.py      # PDF document loading
-└── 🔄 rag/
-    └── ⚡ rag_pipeline.py    # RAG pipeline logic
+│   └── 📥 pdf_loader.py         # PDF document processing
+│
+├── 🔄 rag/
+│   └── ⚡ rag_pipeline.py       # RAG pipeline orchestration
+│
+├── 🎨 templates/
+│   └── 📄 index.html            # Web interface
+│
+└── 📊 static/
+    └── 💻 script.js             # Frontend JavaScript
 ```
 
-## 📥 Installation
-
-### ✅ Prerequisites
-
-- Python 3.8+
-- PostgreSQL with pgvector extension
-- Groq API key
-
-### 🔧 Setup Steps
-
-1. **📦 Clone the repository**
-   ```bash
-   git clone https://github.com/Amrit114/DSA_RAG.git
-   cd DSA_RAG
-   ```
-
-2. **🐍 Create a virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **📚 Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **🔐 Configure environment variables**
-   Create a `.env` file in the project root:
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   DB_NAME=rag_db
-   DB_USER=postgres
-   DB_PASSWORD=your_password
-   DB_HOST=localhost
-   DB_PORT=5432
-   ```
-
-5. **🗄️  Setup PostgreSQL**
-   ```sql
-   CREATE DATABASE rag_db;
-   CREATE EXTENSION IF NOT EXISTS vector;
-   ```
-
-6. **📄 Add DSA materials**
-   - Place PDF files in `data/pdf/` directory
-   - Update the `PDF_PATH` in `config.py` if needed
-
-## 📚 Usage
-
-### Loading Documents
-
-Documents are automatically loaded from the configured PDF path. The system:
-1. Extracts text from PDFs
-2. Splits text into chunks
-3. Generates embeddings
-4. Stores in vector database
-
-### 🔍 Running Queries
-
-```python
-from rag.rag_pipeline import rag_answer
-
-question = "What is a binary search tree?"
-answer = rag_answer(question)
-print(answer)
-```
-
-### 💻 Command Line Interface
-
-```bash
-python main.py
-```
-
-## 🛠️ Technologies Used
-
-| Technology | Purpose |
-|-----------|---------|
-| **LangChain** | LLM framework and orchestration |
-| **Groq** | ⚡ Fast LLM inference API |
-| **Sentence Transformers** | Text embedding model (384-dim) |
-| **PostgreSQL + pgvector** | 🗄️ Vector database |
-| **PyPDF/PyMuPDF** | PDF document loading |
-| **Python-dotenv** | Environment variable management |
-
-## 💾 Database Schema
-
-The system uses PostgreSQL with pgvector extension for storing and searching embeddings.
-
-### Documents Table
-
-```sql
-CREATE TABLE documents (
-    id SERIAL PRIMARY KEY,
-    content TEXT,
-    embedding VECTOR(384)
-);
-```
-
-### 📊 Schema Details
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | SERIAL PRIMARY KEY | Unique document identifier |
-| `content` | TEXT | Document text content |
-| `embedding` | VECTOR(384) | 384-dimensional vector representation (from sentence-transformers) |
-
-### 🔑 Indexes (Recommended for Performance)
-
-```sql
--- Create index for vector similarity search
-CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops);
-
--- Create index for faster lookups
-CREATE INDEX ON documents(id);
-```
-
-### 💡 Usage Example
-
-```python
-# Embeddings are automatically generated and stored
-# Vector search is performed using cosine similarity
-from db.vector_store import similarity_search
-
-results = similarity_search("binary search tree", k=5)
-# Returns top 5 most similar documents
-```
-
-## 📦 Dependencies
-
-See [requirements.txt](requirements.txt) for complete list:
-
-```
-langchain                 # LLM orchestration framework
-langchain-groq           # Groq API integration
-sentence-transformers    # Text embeddings
-psycopg2-binary         # PostgreSQL adapter
-pgvector                # Vector extension for PostgreSQL
-pypdf                   # PDF processing
-python-dotenv           # Environment variables
-```
+---
 
 ## ✨ Features
 
-✅ **Multi-document PDF processing** - Handle multiple PDF files  
-✅ **Vector similarity search** - Fast semantic search using pgvector  
-✅ **Context-aware LLM responses** - Intelligent answers based on retrieved context  
-✅ **PostgreSQL integration** - Robust database backend  
-✅ **Fast inference** - Powered by Groq API  
-✅ **Customizable embeddings** - Choose your embedding model  
-✅ **Easy configuration** - Simple config.py for setup  
+### Current Features
 
-## 🔐 API Keys & Credentials
+- ✅ **PDF Document Processing** - Automatically extract and chunk text from PDFs
+- ✅ **Vector Similarity Search** - Fast semantic search using pgvector
+- ✅ **Context-Aware Responses** - LLM generates answers based on retrieved context
+- ✅ **REST API** - Easy integration with other applications
+- ✅ **Web Interface** - User-friendly UI for asking questions
+- ✅ **Persistent Storage** - PostgreSQL database for scalability
+- ✅ **Customizable Embeddings** - Choose your preferred embedding model
+- ✅ **Fast Inference** - Powered by Groq's optimized infrastructure
 
-⚠️ **Security Note**: Never commit API keys or credentials. Use `.env` file for sensitive information.
+### Coming Soon 🔜
 
-### 🔑 Getting API Keys
+- 🔲 Enhanced web UI with chat history
+- 🔲 Support for multiple document formats (DOCX, TXT, Markdown)
+- 🔲 Answer source citations with page numbers
+- 🔲 User authentication and personal document spaces
+- 🔲 Fine-tuned embeddings for DSA domain
+- 🔲 Conversation memory across sessions
+- 🔲 Export chat history
+- 🔲 Real-time document updates
 
-1. **Groq API**: Sign up at [console.groq.com](https://console.groq.com) ⚡
-2. **PostgreSQL**: Set up locally or use cloud provider ☁️
+---
 
-## 🗺️ Roadmap
+## 🔧 Configuration
 
-- [ ] 🌐 Web UI (Streamlit/FastAPI)
-- [ ] 📄 Support for multiple document formats
-- [ ] 🎯 Fine-tuned embeddings
-- [ ] 💬 Conversation history tracking
-- [ ] 📌 Answer source citation
-- [ ] 📊 Performance analytics
-- [ ] 🔔 Real-time updates
+### config.py Settings
+
+```python
+# PDF Directory
+PDF_DIR = "data/pdf"
+
+# Database Configuration
+DB_CONFIG = {
+    "dbname": "rag_db",
+    "user": "postgres",
+    "password": "your_password",
+    "host": "localhost",
+    "port": "5432"
+}
+
+# Embedding Model (384-dimensional)
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+# Groq Configuration
+GROQ_MODEL = "mixtral-8x7b-32768"
+GROQ_API_KEY = "your_api_key"
+```
+
+### Changing Embedding Model
+
+If you use a different embedding model, update the vector dimension:
+
+```sql
+-- For 768-dim models like BERT
+ALTER TABLE documents ALTER COLUMN embedding TYPE VECTOR(768);
+```
+
+---
 
 ## 🐛 Troubleshooting
 
-### 🗄️ Database Connection Issues
-```
-❌ Error: Connection refused
-✅ Solution: Ensure PostgreSQL is running and DB_CONFIG is correct
+### Database Connection Issues
+
+**Problem:** `Connection refused` or `could not connect to server`
+
+**Solution:**
+```bash
+# Check if PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+brew services list               # macOS
+
+# Verify credentials in .env match your PostgreSQL setup
 ```
 
-### 🧮 Embedding Generation Errors
-```
-❌ Error: Model not found
-✅ Solution: Check internet connection and disk space for model download
+### No PDFs Found During Ingestion
+
+**Problem:** `/ingest` reports no documents found
+
+**Solution:**
+```bash
+# Check PDF directory path
+ls data/pdf/
+
+# Verify PDF_DIR in config.py matches actual location
 ```
 
-### 🤖 LLM Response Issues
+### Embedding Generation Errors
+
+**Problem:** Model download fails or embeddings error
+
+**Solution:**
+```bash
+# Ensure you have internet connection
+# Check disk space for model cache (~500MB)
+
+# Clear cache and retry
+rm -rf ~/.cache/huggingface/
 ```
-❌ Error: API key invalid
-✅ Solution: Verify Groq API key and check rate limits
+
+### Groq API Errors
+
+**Problem:** Invalid API key or rate limit errors
+
+**Solution:**
+```bash
+# Verify API key in .env
+echo $GROQ_API_KEY
+
+# Check rate limits at console.groq.com
+# Free tier: 30 requests/minute
 ```
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+We welcome contributions! Here's how you can help:
 
-1. 🍴 Fork the repository
-2. 🌿 Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. 🚀 Push to the branch (`git push origin feature/AmazingFeature`)
-5. 📝 Open a Pull Request
+### How to Contribute
+
+1. 🍴 **Fork** the repository
+2. 🌿 **Create** a feature branch
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. 💾 **Commit** your changes
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+4. 🚀 **Push** to the branch
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. 📝 **Open** a Pull Request
+
+### Contribution Ideas
+
+- 🐛 Bug fixes
+- ✨ New features
+- 📚 Documentation improvements
+- 🎨 UI/UX enhancements
+- ⚡ Performance optimizations
+- 🧪 Test coverage
+
+---
 
 ## 📄 License
 
-This project is open source. Check LICENSE file for details.
+This project is open source. See the [LICENSE](LICENSE) file for details.
 
-## 📞 Contact & Support
-
-- **👤 Author**: [Amrit Raj singh](https://github.com/Amrit114)
-- **📦 Repository**: [DSA_RAG](https://github.com/Amrit114/DSA_RAG)
-- **🐛 Issues**: [Report bugs on GitHub](https://github.com/Amrit114/DSA_RAG/issues)
+---
 
 ## 🙏 Acknowledgments
 
-- ⚡ **Groq** - for fast LLM inference
-- 🔗 **LangChain** - for excellent LLM orchestration
-- 🤗 **Hugging Face** - for sentence transformers
-- 🐘 **PostgreSQL** - for pgvector extension
-- 🎓 **DSA Community** - for educational resources
+- ⚡ **Groq** - For blazing fast LLM inference
+- 🔗 **LangChain** - For excellent LLM orchestration framework
+- 🤗 **Hugging Face** - For sentence transformers and model hosting
+- 🐘 **PostgreSQL** - For pgvector extension and robust database
+- 🎓 **DSA Community** - For educational resources and inspiration
+
+---
+
+## 📞 Contact & Support
+
+<div align="center">
+
+👤 **Amrit Raj Singh**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Amrit114-181717?style=for-the-badge&logo=github)](https://github.com/Amrit114)
+[![Repository](https://img.shields.io/badge/Repo-DSA__RAG-blue?style=for-the-badge&logo=github)](https://github.com/Amrit114/DSA_RAG)
+
+**Found a bug?** [Report it here](https://github.com/Amrit114/DSA_RAG/issues)
+
+**Have questions?** Open a [discussion](https://github.com/Amrit114/DSA_RAG/discussions)
+
+</div>
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it helpful!**
+
+Made with ❤️ for the DSA learning community
+
+</div>
