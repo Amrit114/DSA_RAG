@@ -9,3 +9,5 @@ pgvector
 langchain-groq
 python-dotenv
 langchain-huggingface
+flask 
+flask-cors
